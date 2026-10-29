@@ -5,10 +5,14 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 
+const basename = window.location.pathname.startsWith("/my-train-app")
+  ? "/my-train-app"
+  : "/";
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <BrowserRouter basename="/my-train-app">
+    <BrowserRouter basename={basename}>
       <App />
     </BrowserRouter>
   </React.StrictMode>,
