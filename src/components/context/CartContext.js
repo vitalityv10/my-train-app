@@ -1,14 +1,12 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { db } from "../../firebase";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  arrayUnion,
-  onSnapshot,
-} from "firebase/firestore";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+} from "react";
 import { useAuth } from "./auth/AuthContext";
+import { apiFetch } from "../../api/apiClient";
 
 const CartContext = createContext(null);
 
@@ -16,26 +14,26 @@ export const CartProvider = ({ children }) => {
   const { user } = useAuth();
   const [cart, setCart] = useState({ items: [] });
 
-  useEffect(() => {
+  const fetchCart = useCallback(async () => {
     if (!user) {
       setCart({ items: [] });
       return;
     }
-    const userRef = doc(db, "users", user.uid);
-    const unsubscribe = onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setCart(docSnap.data().cart || { items: [] });
+    try {
+      const data = await apiFetch("/api/cart");
+      if (data && Array.isArray(data.items)) {
+        setCart({ items: data.items });
+      } else {
+        setCart({ items: [] });
       }
-    });
-    return unsubscribe;
+    } catch (error) {
+      console.error("Failed to fetch cart from backend:", error);
+    }
   }, [user]);
 
-  const updateCartInFirestore = async (newCart) => {
-    if (!user) return;
-    setCart(newCart);
-    const userRef = doc(db, "users", user.uid);
-    await setDoc(userRef, { cart: newCart }, { merge: true });
-  };
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
 
   const addToCart = async (train) => {
     if (!user) {
@@ -43,56 +41,124 @@ export const CartProvider = ({ children }) => {
       return;
     }
 
+    // Optimistic local update
     const exists = cart.items.find((i) => i.id === train.id);
-    const newItems = exists
+    const optimisticItems = exists
       ? cart.items.map((i) =>
-          i.id === train.id ? { ...i, quantity: i.quantity + 1 } : i,
+          i.id === train.id ? { ...i, quantity: (i.quantity || 1) + 1 } : i,
         )
       : [...cart.items, { ...train, quantity: 1 }];
+    setCart({ items: optimisticItems });
 
-    await updateCartInFirestore({ items: newItems });
+    try {
+      const data = await apiFetch("/api/cart/items", {
+        method: "POST",
+        body: JSON.stringify({
+          trainId: train.id,
+          quantity: 1,
+        }),
+      });
+      if (data && Array.isArray(data.items)) {
+        setCart({ items: data.items });
+      }
+    } catch (error) {
+      console.error("Error adding item to cart:", error);
+    }
   };
 
   const removeFromCart = async (id) => {
-    const newItems = cart.items.filter((i) => i.id !== id);
-    await updateCartInFirestore({ items: newItems });
+    if (!user) return;
+
+    const optimisticItems = cart.items.filter((i) => i.id !== id);
+    setCart({ items: optimisticItems });
+
+    try {
+      const data = await apiFetch(`/api/cart/items/${id}`, {
+        method: "DELETE",
+      });
+      if (data && Array.isArray(data.items)) {
+        setCart({ items: data.items });
+      }
+    } catch (error) {
+      console.error("Error removing item from cart:", error);
+    }
   };
 
   const updateQuantity = async (itemId, newQuantity) => {
-    const newItems = cart.items.map((i) =>
+    if (!user || newQuantity < 1) return;
+
+    const optimisticItems = cart.items.map((i) =>
       i.id === itemId ? { ...i, quantity: newQuantity } : i,
     );
-    await updateCartInFirestore({ items: newItems });
+    setCart({ items: optimisticItems });
+
+    try {
+      const data = await apiFetch(`/api/cart/items/${itemId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ quantity: newQuantity }),
+      });
+      if (data && Array.isArray(data.items)) {
+        setCart({ items: data.items });
+      }
+    } catch (error) {
+      console.error("Error updating item quantity:", error);
+    }
   };
 
-  const clearCart = () => updateCartInFirestore({ items: [] });
-
-  const purchaseTickets = async (tickets) => {
+  const clearCart = async () => {
     if (!user) return;
+    setCart({ items: [] });
 
-    for (const ticket of tickets) {
-      const timeString = ticket.route?.from?.departureTime;
-      const dateOnly = timeString
-        ? new Date(timeString).toISOString().split("T")[0]
-        : "unknown-date";
-
-      const trainIdentifier = ticket.id || ticket.number;
-      const occupancyDocId = `${trainIdentifier}_${dateOnly}`;
-      const seatId = `${ticket.seat.carriage}_${ticket.seat.number}`;
-
-      const occupancyRef = doc(db, "trains_occupancy", occupancyDocId);
-      const occupancySnap = await getDoc(occupancyRef);
-
-      if (occupancySnap.exists()) {
-        await updateDoc(occupancyRef, {
-          occupiedSeats: arrayUnion(seatId),
-        });
-      } else {
-        await setDoc(occupancyRef, {
-          occupiedSeats: [seatId],
-        });
-      }
+    try {
+      await apiFetch("/api/cart", {
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.error("Error clearing cart:", error);
     }
+  };
+
+  const purchaseTickets = async (
+    tickets,
+    paymentMethodOverride,
+    contactPhoneOverride,
+  ) => {
+    if (!user || !tickets || tickets.length === 0) return null;
+
+    const resolvedPaymentMethod =
+      paymentMethodOverride || tickets[0]?.payment?.method || "card";
+    const resolvedContactPhone =
+      resolvedPaymentMethod === "cash"
+        ? contactPhoneOverride || tickets[0]?.contactPhone || null
+        : null;
+
+    const formattedTickets = tickets.map((ticket) => {
+      const timeString = ticket.route?.from?.departureTime;
+      const departureDate =
+        ticket.departureDate ||
+        (timeString
+          ? new Date(timeString).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0]);
+
+      return {
+        trainId: ticket.trainId || ticket.id,
+        departureDate,
+        carriage: ticket.carriage ?? ticket.seat?.carriage ?? 1,
+        seatNumber: ticket.seatNumber ?? ticket.seat?.number ?? 1,
+      };
+    });
+
+    const response = await apiFetch("/api/checkout/purchase", {
+      method: "POST",
+      body: JSON.stringify({
+        paymentMethod: resolvedPaymentMethod,
+        contactPhone: resolvedContactPhone,
+        tickets: formattedTickets,
+      }),
+    });
+
+    setCart({ items: [] });
+    return response;
   };
 
   return (
@@ -104,6 +170,7 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         clearCart,
         purchaseTickets,
+        refreshCart: fetchCart,
       }}
     >
       {children}

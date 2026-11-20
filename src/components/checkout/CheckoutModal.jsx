@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Button, Badge } from "react-bootstrap";
+import { Modal, Button, Badge, Alert, Spinner } from "react-bootstrap";
 import { FaWifi, FaSnowflake } from "react-icons/fa";
 import { useSeatSelection } from "../../hooks/useSeatSelection";
 
@@ -19,10 +19,13 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
   });
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleClose = () => {
     resetSeats();
     setStep("seats");
+    setApiError("");
     onHide();
   };
 
@@ -53,7 +56,8 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
     return Object.keys(e).length === 0;
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    setApiError("");
     const valid = paymentMethod === "card" ? validateCard() : validatePhone();
     if (!valid) return;
 
@@ -67,6 +71,7 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
       selectedSeats.forEach((seat, index) => {
         tickets.push({
           ...item,
+          trainId: item.id,
           quantity: 1,
           seat: { ...item.seat, carriage: seat.carriage, number: seat.number },
           payment: {
@@ -75,15 +80,37 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
             method: paymentMethod,
             paidAt: new Date().toISOString(),
           },
+          contactPhone: paymentMethod === "cash" ? phone.trim() : null,
           ticketId: `TKT-${Date.now()}-${item.id}-${index}`,
         });
       });
     });
 
-    onSuccess(tickets);
-    resetSeats();
-    setStep("seats");
-    onHide();
+    setSubmitting(true);
+    try {
+      await onSuccess(
+        tickets,
+        paymentMethod,
+        paymentMethod === "cash" ? phone.trim() : null,
+      );
+      resetSeats();
+      setStep("seats");
+      onHide();
+    } catch (error) {
+      if (error.status === 409) {
+        const conflicting = error.data?.conflictingSeats?.join(", ");
+        setApiError(
+          `Обрані місця вже зайняті${conflicting ? ` (${conflicting})` : ""}. Будь ласка, оберіть інші місця.`,
+        );
+        setStep("seats");
+      } else {
+        setApiError(
+          error.message || "Помилка під час оформлення замовлення. Спробуйте ще раз.",
+        );
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -95,6 +122,17 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
       </Modal.Header>
 
       <Modal.Body>
+        {apiError && (
+          <Alert
+            variant="danger"
+            onClose={() => setApiError("")}
+            dismissible
+            className="mb-3"
+          >
+            {apiError}
+          </Alert>
+        )}
+
         {step === "seats" ? (
           <>
             {cartItems.map((item) => {
@@ -124,7 +162,6 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
                     </div>
                   </div>
 
-                  {/* Виклик винесеного компонента */}
                   <SeatGrid
                     train={item}
                     seats={seats}
@@ -152,7 +189,6 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
             })}
           </>
         ) : (
-          /* Виклик винесеного компонента */
           <PaymentForm
             paymentMethod={paymentMethod}
             setPaymentMethod={setPaymentMethod}
@@ -183,12 +219,26 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
           <>
             <Button
               variant="outline-secondary"
+              disabled={submitting}
               onClick={() => setStep("seats")}
             >
               ← Назад
             </Button>
-            <Button variant="success" onClick={handleConfirm}>
-              {paymentMethod === "card" ? "💳 Оплатити" : "📋 Забронювати"}
+            <Button
+              variant="success"
+              disabled={submitting}
+              onClick={handleConfirm}
+            >
+              {submitting ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Оформлення...
+                </>
+              ) : paymentMethod === "card" ? (
+                "💳 Оплатити"
+              ) : (
+                "📋 Забронювати"
+              )}
             </Button>
           </>
         )}

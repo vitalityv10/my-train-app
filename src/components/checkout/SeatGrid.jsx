@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "react-bootstrap";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../../firebase";
+import { apiFetch } from "../../api/apiClient";
 
 const statusColor = {
   available: "#d4edda",
@@ -22,27 +21,38 @@ export default function SeatGrid({ train, seats, onSelect, maxQuantity }) {
 
   useEffect(() => {
     if (!train || !train.route) return;
+    let isMounted = true;
 
     const timeString = train.route?.from?.departureTime;
     const dateOnly = timeString
       ? new Date(timeString).toISOString().split("T")[0]
-      : "unknown-date";
+      : new Date().toISOString().split("T")[0];
 
-    const trainIdentifier = train.id || train.number;
-    const occupancyId = `${trainIdentifier}_${dateOnly}`;
+    const trainId = train.id;
 
-    const unsubscribe = onSnapshot(
-      doc(db, "trains_occupancy", occupancyId),
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setGlobalOccupied(docSnap.data().occupiedSeats || []);
-        } else {
+    const fetchOccupancy = async () => {
+      try {
+        const data = await apiFetch(
+          `/api/trains/${trainId}/occupancy?date=${encodeURIComponent(dateOnly)}`,
+        );
+        if (isMounted) {
+          setGlobalOccupied(
+            Array.isArray(data?.occupiedSeats) ? data.occupiedSeats : [],
+          );
+        }
+      } catch (error) {
+        console.warn("Could not fetch seat occupancy from backend:", error);
+        if (isMounted) {
           setGlobalOccupied([]);
         }
-      },
-    );
+      }
+    };
 
-    return () => unsubscribe();
+    fetchOccupancy();
+
+    return () => {
+      isMounted = false;
+    };
   }, [train]);
 
   const handleSeatClick = (seat, finalStatus) => {
