@@ -18,7 +18,7 @@ import { useCart } from "../components/context/CartContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 
 export default function Home() {
-  const { trains, loading } = useTrainsData();
+  const { trains, cities, loading } = useTrainsData();
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const [searchQuery, setSearchQuery] = useLocalStorage("trainSearchQuery", "");
@@ -28,7 +28,10 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useLocalStorage("trainDate", "");
 
   const { addToCart } = useCart();
-  const allCities = getAllCities(trains.length > 0 ? trains : initialTrainsData);
+  const allCities =
+    cities && cities.length > 0
+      ? cities
+      : getAllCities(trains.length > 0 ? trains : initialTrainsData);
 
   const { currentTrains, totalPages, currentPage, setCurrentPage } =
     useFilteredTrains(

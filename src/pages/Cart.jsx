@@ -7,8 +7,7 @@ import CartTable from "../components/cart/CartTable";
 
 export default function Cart() {
   const { user } = useAuth();
-  const { cart, removeFromCart, clearCart, updateQuantity, purchaseTickets } =
-    useCart();
+  const { cart, removeFromCart, updateQuantity, purchaseTickets } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
 
   const totalPrice = cart.items.reduce(
@@ -16,9 +15,8 @@ export default function Cart() {
     0,
   );
 
-  const handleSuccess = async (tickets) => {
-    await purchaseTickets(tickets);
-    await clearCart();
+  const handleSuccess = async (tickets, paymentMethod, contactPhone) => {
+    await purchaseTickets(tickets, paymentMethod, contactPhone);
     setShowCheckout(false);
     alert("Квитки успішно придбано!");
   };

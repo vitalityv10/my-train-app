@@ -1,33 +1,54 @@
 import { useState, useEffect } from "react";
-import { db } from "../firebase";
-import { collection, getDocs, setDoc, doc } from "firebase/firestore";
-import { initialTrainsData } from "../data/trains";
+import { initialTrainsData, getAllCities } from "../data/trains";
+import { apiFetch } from "../api/apiClient";
 
 export function useTrainsData() {
   const [trains, setTrains] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchTrains = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "trains"));
-        if (snapshot.empty) {
-          for (const train of initialTrainsData) {
-            await setDoc(doc(db, "trains", String(train.id)), train);
-          }
-          setTrains(initialTrainsData);
-        } else {
-          setTrains(snapshot.docs.map((d) => d.data()));
-        }
+        const [trainsData, citiesData] = await Promise.all([
+          apiFetch("/api/trains"),
+          apiFetch("/api/trains/cities").catch(() => null),
+        ]);
+
+        if (!isMounted) return;
+
+        const resolvedTrains =
+          Array.isArray(trainsData) && trainsData.length > 0
+            ? trainsData
+            : initialTrainsData;
+
+        setTrains(resolvedTrains);
+        setCities(
+          Array.isArray(citiesData) && citiesData.length > 0
+            ? citiesData
+            : getAllCities(resolvedTrains),
+        );
       } catch (error) {
-        console.error("Error fetching trains:", error);
-        setTrains(initialTrainsData);
+        console.error("Error fetching trains from backend:", error);
+        if (isMounted) {
+          setTrains(initialTrainsData);
+          setCities(getAllCities(initialTrainsData));
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+
     fetchTrains();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  return { trains, loading };
+  return { trains, cities, loading };
 }
