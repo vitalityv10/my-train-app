@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Spinner, Badge } from "react-bootstrap";
+import { Button, Form, Spinner } from "react-bootstrap";
 import styled, { keyframes } from "styled-components";
-import {
-  FaRobot,
-  FaPaperPlane,
-  FaTimes,
-  FaRedo,
-  FaTrashAlt,
-  FaMagic,
-  FaExclamationTriangle,
-} from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
 import { useAuth } from "../context/auth/AuthContext";
 import {
   getOrCreateSessionId,
@@ -20,12 +12,6 @@ import {
 } from "../../api/aiApi";
 import MarkdownText from "./MarkdownText";
 import SuggestedTrainCard from "./SuggestedTrainCard";
-
-const pulse = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.45); }
-  70% { box-shadow: 0 0 0 12px rgba(13, 110, 253, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
-`;
 
 const bounce = keyframes`
   0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
@@ -47,28 +33,21 @@ const FloatingWrapper = styled.div`
 const FabButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  gap: 8px;
+  background-color: var(--brand-navy);
   color: #ffffff;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 50px;
-  padding: 12px 20px;
+  padding: 12px 22px;
   font-weight: 600;
-  font-size: 0.95rem;
-  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.35);
+  font-size: 0.92rem;
+  box-shadow: 0 8px 24px rgba(15, 37, 71, 0.28);
   cursor: pointer;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  animation: ${pulse} 2.5s infinite;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(13, 110, 253, 0.45);
-  }
-
-  &:active {
-    transform: translateY(0);
+    background-color: var(--brand-navy-dark);
   }
 `;
 
@@ -78,16 +57,16 @@ const ChatWindow = styled.div`
   right: 24px;
   width: 400px;
   max-width: calc(100vw - 32px);
-  height: 580px;
+  height: 560px;
   max-height: calc(100vh - 48px);
-  background: #f8f9fa;
-  border-radius: 18px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  background: var(--brand-bg);
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(15, 37, 71, 0.22);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 1065;
-  border: 1px solid rgba(13, 110, 253, 0.15);
+  border: 1px solid var(--brand-border);
 
   @media (max-width: 575.98px) {
     top: 0;
@@ -103,7 +82,7 @@ const ChatWindow = styled.div`
 `;
 
 const ChatHeader = styled.div`
-  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  background-color: var(--brand-navy);
   color: #fff;
   padding: 14px 16px;
   display: flex;
@@ -124,13 +103,14 @@ const MessagesContainer = styled.div`
 const MessageBubble = styled.div`
   max-width: 88%;
   align-self: ${(props) => (props.$isUser ? "flex-end" : "flex-start")};
-  background: ${(props) => (props.$isUser ? "#0d6efd" : "#ffffff")};
-  color: ${(props) => (props.$isUser ? "#ffffff" : "#212529")};
+  background: ${(props) => (props.$isUser ? "var(--brand-navy)" : "#ffffff")};
+  color: ${(props) => (props.$isUser ? "#ffffff" : "var(--brand-text)")};
   border-radius: ${(props) =>
-    props.$isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px"};
+    props.$isUser ? "14px 14px 4px 14px" : "14px 14px 14px 4px"};
   padding: 10px 14px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  font-size: 0.92rem;
+  border: ${(props) =>
+    props.$isUser ? "none" : "1px solid var(--brand-border)"};
+  font-size: 0.9rem;
   line-height: 1.45;
   word-break: break-word;
 
@@ -141,20 +121,20 @@ const MessageBubble = styled.div`
 
 const QuickChip = styled.button`
   background: #ffffff;
-  color: #0d6efd;
-  border: 1px solid rgba(13, 110, 253, 0.3);
-  border-radius: 20px;
+  color: var(--brand-navy);
+  border: 1px solid var(--brand-border);
+  border-radius: 18px;
   padding: 6px 13px;
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
   text-align: left;
 
   &:hover {
-    background: #0d6efd;
+    background: var(--brand-navy);
     color: #ffffff;
-    border-color: #0d6efd;
+    border-color: var(--brand-navy);
   }
 `;
 
@@ -166,7 +146,7 @@ const TypingDots = styled.span`
   span {
     width: 6px;
     height: 6px;
-    background-color: #0d6efd;
+    background-color: var(--brand-accent);
     border-radius: 50%;
     display: inline-block;
     animation: ${bounce} 1.4s infinite ease-in-out both;
@@ -183,7 +163,7 @@ const TypingDots = styled.span`
 const InputArea = styled.div`
   background: #ffffff;
   padding: 10px 12px;
-  border-top: 1px solid #dee2e6;
+  border-top: 1px solid var(--brand-border);
   flex-shrink: 0;
 `;
 
@@ -260,7 +240,6 @@ export default function AiChatWidget() {
         suggestedTrains: Array.isArray(data?.suggestedTrains)
           ? data.suggestedTrains
           : [],
-        usedTools: Array.isArray(data?.usedTools) ? data.usedTools : [],
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
@@ -294,7 +273,7 @@ export default function AiChatWidget() {
     try {
       await deleteAiChatSession(sessionId);
     } catch {
-      // Even if backend session delete fails (e.g. offline), reset local session
+      // reset local session even if backend fails
     } finally {
       const nextSessionId = resetStoredSessionId();
       setSessionId(nextSessionId);
@@ -318,11 +297,10 @@ export default function AiChatWidget() {
           <FabButton
             type="button"
             onClick={() => setIsOpen(true)}
-            title="AI-помічник маршрутів"
-            aria-label="Відкрити AI-помічник"
+            title="Помічник маршрутів"
+            aria-label="Відкрити помічник маршрутів"
           >
-            <FaMagic size={18} />
-            <span>AI-помічник</span>
+            <span>Помічник</span>
           </FabButton>
         </FloatingWrapper>
       )}
@@ -330,31 +308,12 @@ export default function AiChatWidget() {
       {isOpen && (
         <ChatWindow role="dialog" aria-label="Помічник маршрутів">
           <ChatHeader>
-            <div className="d-flex align-items-center gap-2">
-              <div
-                className="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                style={{ width: "36px", height: "36px" }}
-              >
-                <FaRobot size={19} />
+            <div>
+              <div className="fw-bold lh-sm" style={{ fontSize: "0.95rem" }}>
+                Помічник маршрутів
               </div>
-              <div>
-                <div className="fw-bold lh-sm" style={{ fontSize: "0.98rem" }}>
-                  Помічник маршрутів
-                </div>
-                <div
-                  className="d-flex align-items-center gap-1 opacity-75"
-                  style={{ fontSize: "0.75rem" }}
-                >
-                  <span
-                    className="rounded-circle d-inline-block"
-                    style={{
-                      width: "7px",
-                      height: "7px",
-                      backgroundColor: isLoading ? "#ffc107" : "#20c997",
-                    }}
-                  />
-                  <span>{isLoading ? "Шукає маршрути..." : "Онлайн"}</span>
-                </div>
+              <div className="opacity-75" style={{ fontSize: "0.75rem" }}>
+                {isLoading ? "Шукає маршрути..." : "Онлайн"}
               </div>
             </div>
 
@@ -362,48 +321,38 @@ export default function AiChatWidget() {
               <Button
                 variant="link"
                 size="sm"
-                className="text-white text-decoration-none px-2 py-1 d-flex align-items-center gap-1 opacity-90"
+                className="text-white text-decoration-none px-2 py-1 opacity-75"
                 onClick={handleNewChat}
                 disabled={isLoading || isResetting}
-                title="Новий чат (очистити історію)"
+                title="Очистити історію чату"
               >
                 {isResetting ? (
                   <Spinner animation="border" size="sm" />
                 ) : (
-                  <>
-                    <FaTrashAlt size={13} />
-                    <span className="small">Новий чат</span>
-                  </>
+                  <span className="small">Очистити</span>
                 )}
               </Button>
               <Button
                 variant="link"
                 size="sm"
-                className="text-white p-1 ms-1"
+                className="text-white p-1"
                 onClick={() => setIsOpen(false)}
                 title="Закрити чат"
                 aria-label="Закрити чат"
               >
-                <FaTimes size={18} />
+                <FaTimes size={16} />
               </Button>
             </div>
           </ChatHeader>
 
           <MessagesContainer>
             {messages.length === 0 && !isLoading ? (
-              <div className="my-auto text-center px-2 py-3">
-                <div
-                  className="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                  style={{ width: "56px", height: "56px" }}
-                >
-                  <FaRobot size={28} />
-                </div>
-                <h6 className="fw-bold text-dark mb-1">
-                  Вітаю! Я ваш AI-помічник 🚆
+              <div className="my-auto text-center px-3 py-3">
+                <h6 className="fw-bold text-dark mb-2">
+                  Допомога з підбором маршруту
                 </h6>
                 <p className="text-muted small mb-3">
-                  Допоможу знайти потяги за маршрутом, ціною чи наявністю Wi-Fi,
-                  а також перевірити вільні місця.
+                  Напишіть напрямок, бюджет або побажання щодо поїздки.
                 </p>
                 <div className="d-flex flex-wrap justify-content-center gap-2">
                   {quickQueries.map((query, idx) => (
@@ -425,21 +374,18 @@ export default function AiChatWidget() {
                       key={msg.id}
                       className="bg-danger bg-opacity-10 border border-danger border-opacity-25 text-danger rounded-3 p-3 small"
                     >
-                      <div className="d-flex align-items-start gap-2 mb-2">
-                        <FaExclamationTriangle className="mt-1 flex-shrink-0" />
-                        <span>{msg.content}</span>
-                      </div>
+                      <div className="mb-2">{msg.content}</div>
                       {msg.failedPrompt && (
                         <Button
                           variant="outline-danger"
                           size="sm"
-                          className="d-inline-flex align-items-center gap-1 py-1 px-2"
+                          className="py-1 px-2"
                           onClick={() =>
                             handleSendMessage(msg.failedPrompt, true)
                           }
                           disabled={isLoading}
                         >
-                          <FaRedo size={11} /> Повторити
+                          Повторити
                         </Button>
                       )}
                     </div>
@@ -478,39 +424,19 @@ export default function AiChatWidget() {
                           ))}
                         </div>
                       )}
-
-                    {!isUser &&
-                      Array.isArray(msg.usedTools) &&
-                      msg.usedTools.length > 0 && (
-                        <div className="mt-1 ps-1 d-flex flex-wrap gap-1">
-                          {msg.usedTools.map((tool, i) => (
-                            <Badge
-                              key={i}
-                              bg="light"
-                              text="secondary"
-                              className="border fw-normal"
-                              style={{ fontSize: "0.68rem" }}
-                            >
-                              ⚡ {tool}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
                   </div>
                 );
               })
             )}
 
             {isLoading && (
-              <div className="d-flex align-items-center gap-2 bg-white border rounded-3 px-3 py-2 align-self-start shadow-sm">
+              <div className="d-flex align-items-center gap-2 bg-white border rounded-3 px-3 py-2 align-self-start">
                 <TypingDots>
                   <span />
                   <span />
                   <span />
                 </TypingDots>
-                <span className="text-muted small">
-                  Асистент шукає маршрути...
-                </span>
+                <span className="text-muted small">Пошук маршрутів...</span>
               </div>
             )}
 
@@ -534,10 +460,9 @@ export default function AiChatWidget() {
                     setInputValue(e.target.value.slice(0, MAX_MESSAGE_LENGTH))
                   }
                   onKeyDown={handleKeyDown}
-                  placeholder="Напишіть запит (напр. потяг до Львова з Wi-Fi)..."
+                  placeholder="Напишіть запит..."
                   disabled={isLoading}
                   maxLength={MAX_MESSAGE_LENGTH}
-                  className="rounded-3 bg-light border-secondary border-opacity-25"
                   style={{
                     resize: "none",
                     fontSize: "0.9rem",
@@ -547,23 +472,14 @@ export default function AiChatWidget() {
                 <Button
                   type="submit"
                   variant="primary"
-                  className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
-                  style={{ width: "40px", height: "38px" }}
+                  size="sm"
+                  className="px-3 flex-shrink-0"
+                  style={{ height: "38px" }}
                   disabled={isLoading || !inputValue.trim()}
-                  title="Надіслати"
-                  aria-label="Надіслати повідомлення"
                 >
-                  <FaPaperPlane size={14} />
+                  Надіслати
                 </Button>
               </div>
-              {inputValue.length > 850 && (
-                <div
-                  className="text-end text-muted mt-1"
-                  style={{ fontSize: "0.72rem" }}
-                >
-                  {inputValue.length} / {MAX_MESSAGE_LENGTH}
-                </div>
-              )}
             </Form>
           </InputArea>
         </ChatWindow>

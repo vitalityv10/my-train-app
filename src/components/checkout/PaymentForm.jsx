@@ -1,6 +1,5 @@
 import React from "react";
 import { Form, Tab, Tabs } from "react-bootstrap";
-import { FaCreditCard, FaPhone } from "react-icons/fa";
 
 export default function PaymentForm({
   paymentMethod,
@@ -17,17 +16,10 @@ export default function PaymentForm({
       onSelect={setPaymentMethod}
       className="mb-3"
     >
-      <Tab
-        eventKey="card"
-        title={
-          <>
-            <FaCreditCard className="me-1" /> Картка
-          </>
-        }
-      >
+      <Tab eventKey="card" title="Банківська картка">
         <Form>
-          <Form.Group className="mb-2">
-            <Form.Label>Номер картки</Form.Label>
+          <Form.Group className="mb-3">
+            <Form.Label className="small fw-semibold">Номер картки</Form.Label>
             <Form.Control
               placeholder="1234 5678 9012 3456"
               value={cardData.number}
@@ -40,9 +32,9 @@ export default function PaymentForm({
               {errors.number}
             </Form.Control.Feedback>
           </Form.Group>
-          <div className="d-flex gap-2">
-            <Form.Group className="mb-2 flex-fill">
-              <Form.Label>Термін дії</Form.Label>
+          <div className="d-flex gap-3">
+            <Form.Group className="mb-3 flex-fill">
+              <Form.Label className="small fw-semibold">Термін дії</Form.Label>
               <Form.Control
                 placeholder="MM/YY"
                 value={cardData.expiry}
@@ -55,8 +47,8 @@ export default function PaymentForm({
                 {errors.expiry}
               </Form.Control.Feedback>
             </Form.Group>
-            <Form.Group className="mb-2" style={{ width: 90 }}>
-              <Form.Label>CVV</Form.Label>
+            <Form.Group className="mb-3" style={{ width: 110 }}>
+              <Form.Label className="small fw-semibold">CVV</Form.Label>
               <Form.Control
                 placeholder="123"
                 value={cardData.cvv}
@@ -71,7 +63,9 @@ export default function PaymentForm({
             </Form.Group>
           </div>
           <Form.Group className="mb-2">
-            <Form.Label>Ім'я на картці</Form.Label>
+            <Form.Label className="small fw-semibold">
+              Ім'я власника картки
+            </Form.Label>
             <Form.Control
               placeholder="IVAN KOVALENKO"
               value={cardData.name}
@@ -87,16 +81,11 @@ export default function PaymentForm({
         </Form>
       </Tab>
 
-      <Tab
-        eventKey="cash"
-        title={
-          <>
-            <FaPhone className="me-1" /> При посадці
-          </>
-        }
-      >
+      <Tab eventKey="cash" title="Оплата при посадці">
         <Form.Group className="mb-2">
-          <Form.Label>Номер телефону для бронювання</Form.Label>
+          <Form.Label className="small fw-semibold">
+            Номер телефону для бронювання
+          </Form.Label>
           <Form.Control
             placeholder="+380 XX XXX XX XX"
             value={phone}
@@ -107,8 +96,8 @@ export default function PaymentForm({
             {errors.phone}
           </Form.Control.Feedback>
         </Form.Group>
-        <p className="text-muted small">
-          Квиток буде заброньовано. Оплата готівкою при посадці.
+        <p className="text-muted small mb-0">
+          Квиток буде заброньовано. Оплата здійснюється при посадці у вагон.
         </p>
       </Tab>
     </Tabs>

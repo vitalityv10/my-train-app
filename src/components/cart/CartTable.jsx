@@ -4,18 +4,18 @@ import CartItem from "./CartItem";
 
 export default function CartTable({ items, onRemove, onUpdate }) {
   return (
-    <Table hover responsive className="align-middle">
-      <thead>
+    <Table hover responsive className="align-middle mb-0">
+      <thead className="table-light">
         <tr>
-          <th>Train #</th>
-          <th>Route</th>
-          <th>Departure / Arrival</th>
-          <th>Class / Seat</th>
-          <th>Amenities</th>
-          <th>Price</th>
-          <th className="text-center">Quantity</th>
-          <th>Total</th>
-          <th>Actions</th>
+          <th>Поїзд</th>
+          <th>Маршрут</th>
+          <th>Відправлення / Прибуття</th>
+          <th>Клас / Місце</th>
+          <th>Зручності</th>
+          <th>Ціна</th>
+          <th className="text-center">Кількість</th>
+          <th>Сума</th>
+          <th>Дії</th>
         </tr>
       </thead>
       <tbody>

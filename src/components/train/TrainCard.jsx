@@ -1,26 +1,86 @@
 import React from "react";
 import { Card, Button } from "react-bootstrap";
 import styled from "styled-components";
-import { FaWifi, FaSnowflake } from "react-icons/fa";
 import { useTrainCard } from "../../hooks/useTrainCard";
 import TrainCardModal from "./TrainCardModal";
 
-const HoverContainer = styled.div`
-  opacity: 0;
-  margin-top: 10px;
-  transition: opacity 0.3s ease;
+const StyledCard = styled(Card)`
+  width: 100%;
+  border: 1px solid var(--brand-border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--brand-surface);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(15, 37, 71, 0.1) !important;
+    border-color: rgba(15, 37, 71, 0.25);
+  }
 `;
 
-const StyledCard = styled(Card)`
-  transition: transform 0.2s, box-shadow 0.2s;
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12) !important;
-  }
-  &:hover ${HoverContainer} {
-    opacity: 1;
-    margin-bottom: 10px;
-  }
+const ImageWrapper = styled.div`
+  position: relative;
+  height: 164px;
+  overflow: hidden;
+  background-color: var(--brand-navy-subtle);
+`;
+
+const TrainBadge = styled.span`
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(15, 37, 71, 0.9);
+  color: #ffffff;
+  font-family: "Unbounded", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+`;
+
+const CardTitleText = styled.h3`
+  font-family: "Unbounded", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--brand-text);
+  margin-bottom: 12px;
+  min-height: 2.66rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const InfoBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background-color: var(--brand-bg);
+  margin-bottom: 14px;
+`;
+
+const TagPill = styled.span`
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background-color: ${(props) =>
+    props.$accent ? "var(--brand-accent-subtle)" : "var(--brand-navy-subtle)"};
+  color: ${(props) =>
+    props.$accent ? "var(--brand-accent-hover)" : "var(--brand-navy)"};
+`;
+
+const PriceValue = styled.div`
+  font-family: "Unbounded", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--brand-navy);
 `;
 
 const FALLBACK_IMAGE =
@@ -43,69 +103,79 @@ export default function TrainCard({ train }) {
 
   return (
     <>
-      <StyledCard className="h-100 shadow-sm" style={{ position: "relative" }}>
-        <Card.Img
-          variant="top"
-          src={imgSrc || FALLBACK_IMAGE}
-          alt={`${route.from.city} → ${route.to.city}`}
-          style={{ height: "160px", objectFit: "cover" }}
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = FALLBACK_IMAGE;
-          }}
-        />
+      <StyledCard className="h-100 shadow-sm d-flex flex-column">
+        <ImageWrapper>
+          <Card.Img
+            variant="top"
+            src={imgSrc || FALLBACK_IMAGE}
+            alt={`${route.from.city} — ${route.to.city}`}
+            style={{ height: "100%", width: "100%", objectFit: "cover" }}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = FALLBACK_IMAGE;
+            }}
+          />
+          {train.number && <TrainBadge>№ {train.number}</TrainBadge>}
+        </ImageWrapper>
 
-        <Card.Body className="d-flex flex-column">
-          <Card.Title className="fs-6">{train.title}</Card.Title>
+        <Card.Body className="d-flex flex-column p-3 p-xl-4">
+          <CardTitleText title={train.title}>{train.title}</CardTitleText>
 
-          <Card.Text className="mb-1">
-            <strong>{route.from.city}</strong> → <strong>{route.to.city}</strong>
-          </Card.Text>
-
-          <Card.Text className="text-muted small mb-1">
-            🕐 {departureTime} – {arrivalTime} &nbsp;|&nbsp; ⏱ {route.duration}
-          </Card.Text>
-
-          <Card.Text className="small mb-1">
-            📅 {departureDate} &nbsp;|&nbsp; 🚃 Вагон {seat.carriage}, місце{" "}
-            {seat.number}
-          </Card.Text>
-
-          <Card.Text className="small mb-2">
-            🎫 {seat.class}
-            {train.hasWifi && (
-              <span className="ms-2 text-primary">
-                <FaWifi /> Wi-Fi
+          <InfoBlock>
+            <div className="d-flex justify-content-between align-items-center">
+              <span className="fw-bold text-dark">
+                {route.from.city} — {route.to.city}
               </span>
-            )}
-            {train.hasAirConditioning && (
-              <span className="ms-2 text-info">
-                <FaSnowflake /> AC
+              <span className="text-muted small fw-medium">
+                {route.duration}
               </span>
-            )}
-          </Card.Text>
+            </div>
 
-          <Card.Text className="mt-auto fw-bold">
-            {payment.basePrice} UAH
-          </Card.Text>
+            <div className="d-flex justify-content-between align-items-center small">
+              <span className="fw-semibold text-dark">
+                {departureTime} – {arrivalTime}
+              </span>
+              <span className="text-muted">{departureDate}</span>
+            </div>
+          </InfoBlock>
 
-          <Button
-            variant="primary"
-            className="w-100"
-            onClick={() => setShowModal(true)}
+          <div
+            className="d-flex flex-wrap align-items-center gap-1 mb-3"
+            style={{ minHeight: "28px" }}
           >
-            Details
-          </Button>
+            <TagPill>{seat.class}</TagPill>
+            <TagPill>
+              Вагон {seat.carriage}, місце {seat.number}
+            </TagPill>
+            {train.hasWifi && <TagPill $accent>Wi-Fi</TagPill>}
+            {train.hasAirConditioning && <TagPill>Кондиціонер</TagPill>}
+          </div>
 
-          <HoverContainer>
-            <Button
-              variant="success"
-              className="w-100 shadow"
-              onClick={handleAddToCart}
-            >
-              🛒 Add to Cart
-            </Button>
-          </HoverContainer>
+          <div className="mt-auto pt-3 border-top">
+            <div className="d-flex justify-content-between align-items-baseline mb-3">
+              <span className="text-muted small">Вартість квитка</span>
+              <PriceValue>{payment.basePrice} грн</PriceValue>
+            </div>
+
+            <div className="d-grid gap-2" style={{ gridTemplateColumns: "1fr 1fr" }}>
+              <Button
+                variant="outline-primary"
+                size="sm"
+                className="py-2"
+                onClick={() => setShowModal(true)}
+              >
+                Детальніше
+              </Button>
+              <Button
+                variant="success"
+                size="sm"
+                className="py-2"
+                onClick={handleAddToCart}
+              >
+                У кошик
+              </Button>
+            </div>
+          </div>
         </Card.Body>
       </StyledCard>
 

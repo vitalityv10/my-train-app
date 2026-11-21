@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../components/context/auth/AuthContext";
 import { useCart } from "../components/context/CartContext";
+import { formatDateUk, formatTimeUk } from "../utils/dateUtils";
 
 export function useTrainCard(train) {
   const { user } = useAuth();
@@ -16,22 +17,9 @@ export function useTrainCard(train) {
     addToCart(train);
   };
 
-  const departureTime = new Date(
-    train.route.from.departureTime,
-  ).toLocaleTimeString("uk-UA", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const arrivalTime = new Date(train.route.to.arrivalTime).toLocaleTimeString(
-    "uk-UA",
-    {
-      hour: "2-digit",
-      minute: "2-digit",
-    },
-  );
-  const departureDate = new Date(
-    train.route.from.departureTime,
-  ).toLocaleDateString("uk-UA");
+  const departureTime = formatTimeUk(train.route.from.departureTime);
+  const arrivalTime = formatTimeUk(train.route.to.arrivalTime);
+  const departureDate = formatDateUk(train.route.from.departureTime);
 
   return {
     showModal,

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Modal, Button, Badge, Alert, Spinner } from "react-bootstrap";
-import { FaWifi, FaSnowflake } from "react-icons/fa";
 import { useSeatSelection } from "../../hooks/useSeatSelection";
 
 import SeatGrid from "./SeatGrid";
@@ -105,7 +104,8 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
         setStep("seats");
       } else {
         setApiError(
-          error.message || "Помилка під час оформлення замовлення. Спробуйте ще раз.",
+          error.message ||
+            "Помилка під час оформлення замовлення. Спробуйте ще раз.",
         );
       }
     } finally {
@@ -116,8 +116,8 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
   return (
     <Modal show={show} onHide={handleClose} centered size="lg">
       <Modal.Header closeButton>
-        <Modal.Title>
-          {step === "seats" ? "🪑 Вибір місць" : "💳 Оплата"}
+        <Modal.Title className="fs-5">
+          {step === "seats" ? "Вибір місць" : "Оплата замовлення"}
         </Modal.Title>
       </Modal.Header>
 
@@ -141,25 +141,19 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
               const chosenSeats = seats.filter((s) => s.status === "selected");
 
               return (
-                <div key={item.id} className="mb-4 border rounded p-3">
+                <div key={item.id} className="mb-4 border rounded-3 p-3">
                   <div className="d-flex justify-content-between align-items-center mb-2">
                     <div>
                       <strong>
-                        #{item.number} {item.title}
+                        №{item.number} {item.title}
                       </strong>
                       <span className="text-muted ms-2">
                         {item.route.from.city} → {item.route.to.city}
                       </span>
                     </div>
-                    <div>
-                      {item.hasWifi && <FaWifi className="text-primary me-2" />}
-                      {item.hasAirConditioning && (
-                        <FaSnowflake className="text-info me-2" />
-                      )}
-                      <Badge bg="success">
-                        {item.payment.basePrice * requiredQty} UAH
-                      </Badge>
-                    </div>
+                    <Badge bg="primary">
+                      {item.payment.basePrice * requiredQty} грн
+                    </Badge>
                   </div>
 
                   <SeatGrid
@@ -171,16 +165,16 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
 
                   <div className="mt-2">
                     {chosenSeats.length === requiredQty ? (
-                      <p className="text-success small mb-0">
-                        ✅ Вибрано всі місця:{" "}
+                      <p className="text-success small fw-semibold mb-0">
+                        Обрано всі місця:{" "}
                         {chosenSeats
-                          .map((s) => `В${s.carriage} М${s.number}`)
-                          .join(", ")}
+                          .map((s) => `вагон ${s.carriage}, місце ${s.number}`)
+                          .join("; ")}
                       </p>
                     ) : (
-                      <p className="text-danger small mb-0">
-                        ⚠️ Оберіть ще {requiredQty - chosenSeats.length} місць
-                        (Вибрано: {chosenSeats.length} з {requiredQty})
+                      <p className="text-muted small mb-0">
+                        Оберіть ще {requiredQty - chosenSeats.length} місць
+                        (обрано {chosenSeats.length} з {requiredQty})
                       </p>
                     )}
                   </div>
@@ -204,7 +198,7 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
       <Modal.Footer>
         {step === "seats" ? (
           <>
-            <Button variant="secondary" onClick={handleClose}>
+            <Button variant="outline-secondary" onClick={handleClose}>
               Скасувати
             </Button>
             <Button
@@ -212,7 +206,7 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
               disabled={!allSeatsSelected}
               onClick={() => setStep("payment")}
             >
-              Далі → Оплата
+              Перейти до оплати
             </Button>
           </>
         ) : (
@@ -222,7 +216,7 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
               disabled={submitting}
               onClick={() => setStep("seats")}
             >
-              ← Назад
+              Назад
             </Button>
             <Button
               variant="success"
@@ -235,9 +229,9 @@ export default function CheckoutModal({ show, onHide, cartItems, onSuccess }) {
                   Оформлення...
                 </>
               ) : paymentMethod === "card" ? (
-                "💳 Оплатити"
+                "Оплатити"
               ) : (
-                "📋 Забронювати"
+                "Забронювати"
               )}
             </Button>
           </>

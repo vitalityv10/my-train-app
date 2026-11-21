@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, Form, Button, InputGroup, Spinner, Badge } from "react-bootstrap";
-import { FaMagic, FaTimes, FaSearch } from "react-icons/fa";
 import { smartSearchTrains, normalizeSuggestedTrain } from "../../api/aiApi";
+import { formatDateUk } from "../../utils/dateUtils";
 
 export default function SmartSearchBar({
   onApplySmartSearch,
@@ -35,8 +35,8 @@ export default function SmartSearchBar({
     } catch (err) {
       setError(
         err?.status === 429 || err?.status === 503
-          ? "AI-пошук тимчасово перевантажений. Спробуйте пізніше або скористайтеся звичайними фільтрами."
-          : "Не вдалося виконати AI-пошук. Перевірте підключення до сервера."
+          ? "Розумний пошук тимчасово перевантажений. Спробуйте пізніше або скористайтеся фільтрами."
+          : "Не вдалося виконати розумний пошук. Перевірте підключення до сервера.",
       );
     } finally {
       setLoading(false);
@@ -50,30 +50,24 @@ export default function SmartSearchBar({
   };
 
   return (
-    <Card className="border-0 shadow-sm rounded-4 mb-4 bg-white">
+    <Card className="border shadow-sm rounded-4 mb-4 bg-white">
       <Card.Body className="p-3 p-md-4">
         <div className="d-flex align-items-center justify-content-between mb-2">
-          <div className="d-flex align-items-center gap-2">
-            <span className="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3">
-              <FaMagic />
-            </span>
-            <div>
-              <h6 className="mb-0 fw-bold text-dark">
-                Розумний AI-пошук маршрутів
-              </h6>
-              <small className="text-muted">
-                Опишіть поїздку природною мовою — AI автоматично налаштує фільтри
-              </small>
-            </div>
+          <div>
+            <h6 className="mb-0 fw-bold text-primary">
+              Розумний пошук маршрутів
+            </h6>
+            <small className="text-muted">
+              Опишіть поїздку природною мовою — параметри фільтрації налаштуються автоматично
+            </small>
           </div>
           {activeAiFilter && (
             <Button
-              variant="outline-secondary"
+              variant="outline-primary"
               size="sm"
-              className="rounded-pill d-inline-flex align-items-center gap-1"
               onClick={handleReset}
             >
-              <FaTimes size={12} /> Скинути AI-пошук
+              Скинути
             </Button>
           )}
         </div>
@@ -84,39 +78,33 @@ export default function SmartSearchBar({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Наприклад: до Одеси з вайфаєм до 700 грн..."
+              placeholder="Наприклад: до Одеси з Wi-Fi до 700 грн..."
               disabled={loading}
               maxLength={300}
-              className="bg-light border-primary border-opacity-25"
             />
             <Button
               type="submit"
               variant="primary"
               disabled={loading || !query.trim()}
-              className="px-3 d-flex align-items-center gap-2"
+              className="px-4"
             >
               {loading ? (
                 <>
-                  <Spinner animation="border" size="sm" />
-                  <span>Аналіз...</span>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  <span>Пошук...</span>
                 </>
               ) : (
-                <>
-                  <FaSearch size={14} />
-                  <span>Знайти з AI</span>
-                </>
+                <span>Знайти</span>
               )}
             </Button>
           </InputGroup>
         </Form>
 
-        {error && (
-          <div className="text-danger small mt-2">{error}</div>
-        )}
+        {error && <div className="text-danger small mt-2">{error}</div>}
 
         {activeAiFilter && (
           <div className="mt-2 pt-2 border-top d-flex align-items-center flex-wrap gap-2">
-            <span className="text-muted small">Розпізнані параметри:</span>
+            <span className="text-muted small">Застосовані параметри:</span>
             {activeAiFilter.city && (
               <Badge bg="primary" className="fw-normal">
                 Місто: {activeAiFilter.city}
@@ -129,7 +117,7 @@ export default function SmartSearchBar({
             )}
             {activeAiFilter.date && (
               <Badge bg="primary" className="fw-normal">
-                Дата: {activeAiFilter.date}
+                Дата: {formatDateUk(activeAiFilter.date) || activeAiFilter.date}
               </Badge>
             )}
             {activeAiFilter.maxPrice !== undefined &&
@@ -139,7 +127,7 @@ export default function SmartSearchBar({
                 </Badge>
               )}
             {activeAiFilter.wifiOnly && (
-              <Badge bg="info" text="dark" className="fw-normal">
+              <Badge bg="secondary" className="fw-normal">
                 Тільки з Wi-Fi
               </Badge>
             )}

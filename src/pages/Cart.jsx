@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Container, Button } from "react-bootstrap";
+import { Container, Button, Card } from "react-bootstrap";
 import { useAuth } from "../components/context/auth/AuthContext";
 import { useCart } from "../components/context/CartContext";
 import CheckoutModal from "../components/checkout/CheckoutModal";
@@ -24,45 +24,50 @@ export default function Cart() {
   if (!user)
     return (
       <Container className="mt-5 text-center">
-        <h3>Please log in to see your cart.</h3>
+        <h3>Увійдіть, щоб переглянути кошик.</h3>
       </Container>
     );
 
   return (
-    <Container className="mt-5 p-4 shadow-sm bg-light rounded">
-      <h2 className="mb-4">Your Shopping Cart</h2>
+    <Container className="py-5">
+      <Card className="border shadow-sm rounded-4 p-4 bg-white">
+        <h2 className="fs-4 mb-4">Кошик</h2>
 
-      {cart.items.length === 0 ? (
-        <p>Cart is empty.</p>
-      ) : (
-        <>
-          <CartTable
-            items={cart.items}
-            onRemove={removeFromCart}
-            onUpdate={updateQuantity}
-          />
+        {cart.items.length === 0 ? (
+          <p className="text-muted mb-0">Ваш кошик порожній.</p>
+        ) : (
+          <>
+            <CartTable
+              items={cart.items}
+              onRemove={removeFromCart}
+              onUpdate={updateQuantity}
+            />
 
-          <div className="text-end mt-4">
-            <h4>
-              Total: <span className="text-primary">{totalPrice} UAH</span>
-            </h4>
-            <Button
-              variant="success"
-              className="mt-2 px-5"
-              onClick={() => setShowCheckout(true)}
-            >
-              Checkout
-            </Button>
-          </div>
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mt-4 pt-3 border-top gap-3">
+              <div>
+                <span className="text-muted me-2">Разом до сплати:</span>
+                <span className="fs-4 fw-bold text-primary font-display">
+                  {totalPrice} грн
+                </span>
+              </div>
+              <Button
+                variant="success"
+                className="px-4 py-2"
+                onClick={() => setShowCheckout(true)}
+              >
+                Оформити замовлення
+              </Button>
+            </div>
 
-          <CheckoutModal
-            show={showCheckout}
-            onHide={() => setShowCheckout(false)}
-            cartItems={cart.items}
-            onSuccess={handleSuccess}
-          />
-        </>
-      )}
+            <CheckoutModal
+              show={showCheckout}
+              onHide={() => setShowCheckout(false)}
+              cartItems={cart.items}
+              onSuccess={handleSuccess}
+            />
+          </>
+        )}
+      </Card>
     </Container>
   );
 }

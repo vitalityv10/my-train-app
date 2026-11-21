@@ -4,9 +4,9 @@ import TrainCard from "./TrainCard";
 
 export default function TrainList({ trains, addToCart }) {
   return (
-    <Row md={4} className="g-4">
+    <Row className="g-4 align-items-stretch">
       {trains.map((train) => (
-        <Col key={train.id} md={6} sm={6} xs={12} lg={4} className="mb-4">
+        <Col key={train.id} xs={12} sm={6} lg={4} className="d-flex">
           <TrainCard train={train} addToCart={addToCart} />
         </Col>
       ))}

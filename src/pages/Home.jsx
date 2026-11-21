@@ -7,10 +7,8 @@ import {
   Offcanvas,
   Spinner,
 } from "react-bootstrap";
-import { FaFilter, FaTrain } from "react-icons/fa";
 import TrainFilters from "../components/train/TrainFilter";
 import TrainList from "../components/train/TrainList";
-import SmartSearchBar from "../components/ai/SmartSearchBar";
 import AppPagination from "../components/utils/AppPagination";
 import { initialTrainsData, getAllCities } from "../data/trains";
 import { useFilteredTrains } from "../hooks/useFilteredTrains";
@@ -42,6 +40,8 @@ export default function Home() {
       setActiveAiFilter(appliedFilter);
       if (appliedFilter.search !== undefined) {
         setSearchQuery(appliedFilter.search || "");
+      } else {
+        setSearchQuery("");
       }
       if (appliedFilter.city !== undefined) {
         setSelectedCity(appliedFilter.city || "");
@@ -108,31 +108,28 @@ export default function Home() {
         setSelectedDate(val);
       }}
       cities={allCities}
+      activeAiFilter={activeAiFilter}
+      onApplySmartSearch={handleApplySmartSearch}
+      onClearSmartSearch={handleClearSmartSearch}
     />
   );
 
   return (
-    <div className="bg-light min-vh-100 pb-5">
+    <div className="min-vh-100 pb-5">
       <Container className="pt-4 pt-md-5">
-        <SmartSearchBar
-          onApplySmartSearch={handleApplySmartSearch}
-          onClearSmartSearch={handleClearSmartSearch}
-          activeAiFilter={activeAiFilter}
-        />
-
         <div className="d-lg-none mb-4">
           <Button
             variant="primary"
-            className="w-100 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+            className="w-100 py-2 shadow-sm"
             onClick={() => setShowMobileFilters(true)}
           >
-            <FaFilter /> Налаштувати пошук
+            Параметри пошуку
           </Button>
         </div>
 
         <Row className="g-4">
           <Col lg={3} className="d-none d-lg-block">
-            <div className="sticky-top" style={{ top: "90px" }}>
+            <div className="sticky-top" style={{ top: "88px" }}>
               {renderFilters()}
             </div>
           </Col>
@@ -163,13 +160,11 @@ export default function Home() {
           placement="start"
         >
           <Offcanvas.Header closeButton className="border-bottom">
-            <Offcanvas.Title className="text-primary fw-bold">
+            <Offcanvas.Title className="text-primary fw-bold fs-6">
               Параметри пошуку
             </Offcanvas.Title>
           </Offcanvas.Header>
-          <Offcanvas.Body className="bg-light">
-            {renderFilters()}
-          </Offcanvas.Body>
+          <Offcanvas.Body>{renderFilters()}</Offcanvas.Body>
         </Offcanvas>
       </Container>
     </div>
@@ -177,16 +172,15 @@ export default function Home() {
 }
 
 const LoadingState = () => (
-  <div className="text-center mt-5 p-5 bg-white rounded-4 shadow-sm">
+  <div className="text-center mt-4 p-5 bg-white border rounded-4 shadow-sm">
     <Spinner animation="border" variant="primary" className="mb-3" />
-    <h5 className="text-primary">Завантажуємо розклад...</h5>
+    <h5 className="text-primary fs-6 mb-0">Завантажуємо розклад...</h5>
   </div>
 );
 
 const EmptyState = () => (
-  <div className="text-center p-5 bg-white rounded-4 shadow-sm text-muted">
-    <FaTrain size={50} className="mb-3 opacity-25" />
-    <h4>Нічого не знайдено</h4>
-    <p>Спробуйте змінити параметри фільтрації.</p>
+  <div className="text-center p-5 bg-white border rounded-4 shadow-sm text-muted">
+    <h4 className="fs-5 text-dark mb-2">Маршрутів не знайдено</h4>
+    <p className="mb-0">Спробуйте змінити параметри пошуку або фільтрації.</p>
   </div>
 );

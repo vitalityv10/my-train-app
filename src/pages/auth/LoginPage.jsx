@@ -13,21 +13,12 @@ import {
 } from "react-bootstrap";
 import { useAuth } from "../../components/context/auth/AuthContext";
 import { useNavigate } from "react-router-dom";
-import {
-  FaGoogle,
-  FaEnvelope,
-  FaLock,
-  FaUser,
-  FaEye,
-  FaEyeSlash,
-  FaTrain,
-} from "react-icons/fa";
 
 export default function LoginPage() {
   const { loginWithGoogle, loginWithBackend, registerWithBackend } = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState("login"); // "login" | "register"
+  const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,7 +51,7 @@ export default function LoginPage() {
     setError("");
 
     if (!email.trim() || !password) {
-      setError("Будь ласка, заповніть email та пароль.");
+      setError("Будь ласка, заповніть електронну пошту та пароль.");
       return;
     }
 
@@ -96,7 +87,7 @@ export default function LoginPage() {
       setError(
         err.message ||
           (mode === "login"
-            ? "Невірний email або пароль."
+            ? "Невірна електронна пошта або пароль."
             : "Не вдалося зареєструвати акаунт."),
       );
     } finally {
@@ -105,22 +96,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-light min-vh-100 py-5 d-flex align-items-center">
+    <div className="min-vh-100 py-5 d-flex align-items-center">
       <Container>
         <Row className="justify-content-center">
           <Col xs={12} sm={10} md={7} lg={5}>
-            <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
-              <Card.Header className="bg-primary text-white text-center py-4 border-0">
-                <FaTrain size={36} className="mb-2" />
-                <h3 className="fw-bold mb-1">TrainApp</h3>
-                <p className="mb-0 small opacity-75">
-                  {mode === "login"
-                    ? "Увійдіть в акаунт, щоб бронювати квитки"
-                    : "Створіть акаунт для швидкого бронювання квитків"}
-                </p>
-              </Card.Header>
+            <Card className="border shadow-sm rounded-4 overflow-hidden bg-white">
+              <Card.Body className="p-4 p-md-5">
+                <div className="text-center mb-4">
+                  <h3 className="fw-bold mb-1 fs-4 text-primary">TrainApp</h3>
+                  <p className="mb-0 small text-muted">
+                    {mode === "login"
+                      ? "Увійдіть в акаунт для бронювання квитків"
+                      : "Створіть акаунт для швидкого бронювання квитків"}
+                  </p>
+                </div>
 
-              <Card.Body className="p-4 p-md-5 bg-white">
                 <Nav
                   variant="pills"
                   justify
@@ -133,7 +123,7 @@ export default function LoginPage() {
                       eventKey="login"
                       className="rounded-3 fw-semibold"
                     >
-                      Вхід
+                      Увійти
                     </Nav.Link>
                   </Nav.Item>
                   <Nav.Item>
@@ -160,52 +150,39 @@ export default function LoginPage() {
                 <Form onSubmit={handleSubmit}>
                   {mode === "register" && (
                     <Form.Group className="mb-3" controlId="authName">
-                      <Form.Label className="small fw-bold text-muted">
+                      <Form.Label className="small fw-semibold text-muted">
                         Ім'я
                       </Form.Label>
-                      <InputGroup>
-                        <InputGroup.Text className="bg-light text-secondary">
-                          <FaUser />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="text"
-                          placeholder="Введіть ваше ім'я"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          disabled={submitting}
-                          required
-                        />
-                      </InputGroup>
+                      <Form.Control
+                        type="text"
+                        placeholder="Введіть ваше ім'я"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        disabled={submitting}
+                        required
+                      />
                     </Form.Group>
                   )}
 
                   <Form.Group className="mb-3" controlId="authEmail">
-                    <Form.Label className="small fw-bold text-muted">
-                      Email
+                    <Form.Label className="small fw-semibold text-muted">
+                      Електронна пошта
                     </Form.Label>
-                    <InputGroup>
-                      <InputGroup.Text className="bg-light text-secondary">
-                        <FaEnvelope />
-                      </InputGroup.Text>
-                      <Form.Control
-                        type="email"
-                        placeholder="name@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        disabled={submitting}
-                        required
-                      />
-                    </InputGroup>
+                    <Form.Control
+                      type="email"
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={submitting}
+                      required
+                    />
                   </Form.Group>
 
                   <Form.Group className="mb-3" controlId="authPassword">
-                    <Form.Label className="small fw-bold text-muted">
+                    <Form.Label className="small fw-semibold text-muted">
                       Пароль
                     </Form.Label>
                     <InputGroup>
-                      <InputGroup.Text className="bg-light text-secondary">
-                        <FaLock />
-                      </InputGroup.Text>
                       <Form.Control
                         type={showPassword ? "text" : "password"}
                         placeholder="Введіть пароль"
@@ -215,42 +192,40 @@ export default function LoginPage() {
                         required
                       />
                       <Button
-                        variant="outline-secondary"
+                        variant="outline-primary"
                         type="button"
+                        size="sm"
                         onClick={() => setShowPassword((prev) => !prev)}
                         tabIndex={-1}
                       >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        {showPassword ? "Сховати" : "Показати"}
                       </Button>
                     </InputGroup>
                   </Form.Group>
 
                   {mode === "register" && (
-                    <Form.Group className="mb-4" controlId="authConfirmPassword">
-                      <Form.Label className="small fw-bold text-muted">
+                    <Form.Group
+                      className="mb-4"
+                      controlId="authConfirmPassword"
+                    >
+                      <Form.Label className="small fw-semibold text-muted">
                         Підтвердіть пароль
                       </Form.Label>
-                      <InputGroup>
-                        <InputGroup.Text className="bg-light text-secondary">
-                          <FaLock />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Повторіть пароль"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          disabled={submitting}
-                          required
-                        />
-                      </InputGroup>
+                      <Form.Control
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Повторіть пароль"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        disabled={submitting}
+                        required
+                      />
                     </Form.Group>
                   )}
 
                   <Button
                     type="submit"
                     variant="primary"
-                    size="lg"
-                    className="w-100 fw-bold rounded-3 mt-2"
+                    className="w-100 py-2 mt-2"
                     disabled={submitting}
                   >
                     {submitting ? (
@@ -272,20 +247,16 @@ export default function LoginPage() {
 
                 <div className="d-flex align-items-center my-4">
                   <hr className="flex-grow-1 text-muted opacity-25" />
-                  <span className="mx-3 text-muted small text-uppercase">
-                    або
-                  </span>
+                  <span className="mx-3 text-muted small">або</span>
                   <hr className="flex-grow-1 text-muted opacity-25" />
                 </div>
 
                 <Button
-                  variant="outline-danger"
-                  size="lg"
-                  className="w-100 d-flex align-items-center justify-content-center gap-2 fw-semibold rounded-3"
+                  variant="outline-primary"
+                  className="w-100 py-2"
                   onClick={handleGoogleLogin}
                   disabled={submitting}
                 >
-                  <FaGoogle />
                   Увійти через Google
                 </Button>
               </Card.Body>

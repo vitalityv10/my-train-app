@@ -1,34 +1,46 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
-import {
-  FaTrain,
-  FaShoppingCart,
-  FaUser,
-  FaSignOutAlt,
-  FaSignInAlt,
-} from "react-icons/fa";
 import { useAuth } from "../context/auth/AuthContext";
+import { useCart } from "../context/CartContext";
 
 export default function AppNavbar() {
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { cart } = useCart();
+
+  const cartCount =
+    cart?.items?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0;
 
   const getLinkClass = (path) => {
-    return `fw-bold d-flex align-items-center gap-2 ${
-      location.pathname === path ? "text-primary" : "text-secondary"
-    }`;
+    const isActive = location.pathname === path;
+    return `fw-semibold px-2 ${isActive ? "text-white" : "text-white-50"}`;
   };
 
   return (
-    <Navbar bg="white" expand="lg" sticky="top" className="shadow-sm py-3">
+    <Navbar
+      expand="lg"
+      sticky="top"
+      variant="dark"
+      style={{ backgroundColor: "var(--brand-navy)" }}
+      className="py-3 shadow-sm"
+    >
       <Container>
         <Navbar.Brand
           as={Link}
           to="/"
-          className="text-primary fw-bold fs-4 d-flex align-items-center"
+          className="text-white fw-bold fs-5 d-flex align-items-center gap-2"
         >
-          <FaTrain className="me-2" /> TrainApp
+          <span>TrainApp</span>
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor: "var(--brand-accent)",
+              display: "inline-block",
+            }}
+          />
         </Navbar.Brand>
 
         <Navbar.Toggle
@@ -37,56 +49,45 @@ export default function AppNavbar() {
         />
 
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="mx-auto gap-2 gap-lg-4 align-items-center mt-3 mt-lg-0">
+          <Nav className="me-auto ms-lg-4 gap-2 gap-lg-3 align-items-lg-center mt-3 mt-lg-0">
             <Nav.Link as={Link} to="/" className={getLinkClass("/")}>
               Каталог
             </Nav.Link>
-          </Nav>
-
-          <Nav className="gap-2 gap-lg-3 align-items-center mt-3 mt-lg-0 border-top border-lg-0 pt-3 pt-lg-0">
-            {user ? (
+            {user && (
               <>
-                <Nav.Link
-                  as={Link}
-                  to="/cart"
-                  className={getLinkClass("/cart")}
-                  title="Cart"
-                >
-                  <FaShoppingCart className="d-lg-none" />{" "}
-                  <span className="d-lg-none">Cart</span>
-                  <FaShoppingCart className="d-none d-lg-block fs-5" />
+                <Nav.Link as={Link} to="/cart" className={getLinkClass("/cart")}>
+                  Кошик{cartCount > 0 ? ` (${cartCount})` : ""}
                 </Nav.Link>
-
                 <Nav.Link
                   as={Link}
                   to="/profile"
                   className={getLinkClass("/profile")}
-                  title="My Profile"
                 >
-                  <FaUser className="d-lg-none" />{" "}
-                  <span className="d-lg-none">My Profile</span>
-                  <FaUser className="d-none d-lg-block fs-5" />
+                  Профіль
                 </Nav.Link>
-
-                <div className="d-none d-lg-block border-start border-2 h-50 mx-2"></div>
-
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  onClick={logout}
-                  className="d-flex align-items-center gap-2 fw-bold rounded-pill px-3"
-                >
-                  <FaSignOutAlt /> <span className="d-lg-none">Logout</span>
-                </Button>
               </>
+            )}
+          </Nav>
+
+          <Nav className="gap-2 align-items-lg-center mt-3 mt-lg-0 pt-3 pt-lg-0 border-top border-secondary border-opacity-25 border-lg-0">
+            {user ? (
+              <Button
+                variant="outline-light"
+                size="sm"
+                onClick={logout}
+                className="px-3 py-1"
+              >
+                Вийти
+              </Button>
             ) : (
               <Button
                 as={Link}
                 to="/login"
-                variant="primary"
-                className="d-flex align-items-center gap-2 fw-bold rounded-pill px-4"
+                variant="success"
+                size="sm"
+                className="px-4 py-2"
               >
-                <FaSignInAlt /> Login
+                Увійти
               </Button>
             )}
           </Nav>

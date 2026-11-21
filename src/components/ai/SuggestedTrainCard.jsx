@@ -1,16 +1,9 @@
 import React, { useState } from "react";
 import { Badge, Button } from "react-bootstrap";
-import {
-  FaWifi,
-  FaClock,
-  FaArrowRight,
-  FaCartPlus,
-  FaCheck,
-  FaInfoCircle,
-} from "react-icons/fa";
 import { useAuth } from "../context/auth/AuthContext";
 import { useCart } from "../context/CartContext";
 import { normalizeSuggestedTrain } from "../../api/aiApi";
+import { formatDateUk, formatTimeUk } from "../../utils/dateUtils";
 import TrainCardModal from "../train/TrainCardModal";
 
 export default function SuggestedTrainCard({ rawTrain }) {
@@ -22,29 +15,9 @@ export default function SuggestedTrainCard({ rawTrain }) {
 
   if (!train) return null;
 
-  const formatTime = (isoString) => {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    if (Number.isNaN(date.getTime())) return "";
-    return date.toLocaleTimeString("uk-UA", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatDate = (isoString) => {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    if (Number.isNaN(date.getTime())) return "";
-    return date.toLocaleDateString("uk-UA", {
-      day: "2-digit",
-      month: "2-digit",
-    });
-  };
-
-  const depTime = formatTime(train.departureTime);
-  const arrTime = formatTime(train.arrivalTime);
-  const depDate = formatDate(train.departureTime);
+  const depTime = formatTimeUk(train.departureTime);
+  const arrTime = formatTimeUk(train.arrivalTime);
+  const depDate = formatDateUk(train.departureTime, { short: true });
 
   const handleAdd = async () => {
     if (!user) {
@@ -58,75 +31,57 @@ export default function SuggestedTrainCard({ rawTrain }) {
 
   return (
     <>
-      <div className="bg-white border rounded-3 p-2 mb-2 shadow-sm">
+      <div className="bg-white border rounded-3 p-3 mb-2 shadow-sm">
         <div className="d-flex justify-content-between align-items-start gap-2 mb-1">
-          <div className="d-flex align-items-center gap-1 flex-wrap">
+          <div className="d-flex align-items-center gap-2 flex-wrap">
             <Badge bg="primary" className="fw-semibold">
               №{train.number}
             </Badge>
             <span className="fw-bold text-dark small">{train.title}</span>
           </div>
           {train.hasWifi && (
-            <Badge
-              bg="info"
-              text="dark"
-              className="d-inline-flex align-items-center gap-1 bg-opacity-25 text-primary border border-primary border-opacity-25"
-            >
-              <FaWifi size={11} /> Wi-Fi
-            </Badge>
+            <span className="badge bg-accent-subtle fw-semibold">Wi-Fi</span>
           )}
         </div>
 
         <div className="d-flex align-items-center justify-content-between small text-secondary mb-1">
-          <div className="fw-semibold text-dark d-flex align-items-center gap-1">
-            <span>{train.fromCity}</span>
-            <FaArrowRight size={11} className="text-primary mx-1" />
-            <span>{train.toCity}</span>
+          <div className="fw-semibold text-dark">
+            {train.fromCity} → {train.toCity}
           </div>
           {train.duration && (
-            <span className="text-muted d-inline-flex align-items-center gap-1">
-              <FaClock size={11} /> {train.duration}
-            </span>
+            <span className="text-muted">{train.duration}</span>
           )}
         </div>
 
         {(depTime || arrTime) && (
           <div className="text-muted mb-2" style={{ fontSize: "0.78rem" }}>
             {depDate ? `${depDate} • ` : ""}
-            {depTime} — {arrTime}
+            {depTime} – {arrTime}
           </div>
         )}
 
-        <div className="d-flex align-items-center justify-content-between pt-1 border-top">
+        <div className="d-flex align-items-center justify-content-between pt-2 border-top">
           <span className="fw-bold text-primary">
             {Number(train.basePrice).toFixed(0)} грн
           </span>
-          <div className="d-flex gap-1">
+          <div className="d-flex gap-2">
             <Button
               variant="outline-primary"
               size="sm"
-              className="py-1 px-2 d-inline-flex align-items-center gap-1"
+              className="py-1 px-2"
               style={{ fontSize: "0.78rem" }}
               onClick={() => setShowModal(true)}
             >
-              <FaInfoCircle size={12} /> Детальніше
+              Детальніше
             </Button>
             <Button
-              variant={added ? "success" : "primary"}
+              variant="success"
               size="sm"
-              className="py-1 px-2 d-inline-flex align-items-center gap-1"
+              className="py-1 px-2"
               style={{ fontSize: "0.78rem" }}
               onClick={handleAdd}
             >
-              {added ? (
-                <>
-                  <FaCheck size={11} /> Додано
-                </>
-              ) : (
-                <>
-                  <FaCartPlus size={12} /> У кошик
-                </>
-              )}
+              {added ? "Додано" : "У кошик"}
             </Button>
           </div>
         </div>
