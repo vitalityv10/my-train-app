@@ -10,6 +10,7 @@ import {
 import { FaFilter, FaTrain } from "react-icons/fa";
 import TrainFilters from "../components/train/TrainFilter";
 import TrainList from "../components/train/TrainList";
+import SmartSearchBar from "../components/ai/SmartSearchBar";
 import AppPagination from "../components/utils/AppPagination";
 import { initialTrainsData, getAllCities } from "../data/trains";
 import { useFilteredTrains } from "../hooks/useFilteredTrains";
@@ -27,15 +28,54 @@ export default function Home() {
   const [selectedCity, setSelectedCity] = useLocalStorage("trainCity", "");
   const [selectedDate, setSelectedDate] = useLocalStorage("trainDate", "");
 
+  const [aiResultTrains, setAiResultTrains] = useState(null);
+  const [activeAiFilter, setActiveAiFilter] = useState(null);
+
   const { addToCart } = useCart();
   const allCities =
     cities && cities.length > 0
       ? cities
       : getAllCities(trains.length > 0 ? trains : initialTrainsData);
 
+  const handleApplySmartSearch = ({ appliedFilter, trains: smartTrains }) => {
+    if (appliedFilter) {
+      setActiveAiFilter(appliedFilter);
+      if (appliedFilter.search !== undefined) {
+        setSearchQuery(appliedFilter.search || "");
+      }
+      if (appliedFilter.city !== undefined) {
+        setSelectedCity(appliedFilter.city || "");
+      }
+      if (appliedFilter.date !== undefined) {
+        setSelectedDate(appliedFilter.date || "");
+      }
+      if (
+        appliedFilter.maxPrice !== undefined &&
+        appliedFilter.maxPrice !== null
+      ) {
+        setMaxPrice(Number(appliedFilter.maxPrice));
+      }
+      if (appliedFilter.wifiOnly !== undefined) {
+        setWifiOnly(Boolean(appliedFilter.wifiOnly));
+      }
+    }
+    if (Array.isArray(smartTrains)) {
+      setAiResultTrains(smartTrains);
+    } else {
+      setAiResultTrains(null);
+    }
+  };
+
+  const handleClearSmartSearch = () => {
+    setActiveAiFilter(null);
+    setAiResultTrains(null);
+  };
+
+  const sourceTrains = aiResultTrains !== null ? aiResultTrains : trains;
+
   const { currentTrains, totalPages, currentPage, setCurrentPage } =
     useFilteredTrains(
-      trains,
+      sourceTrains,
       { searchQuery, wifiOnly, maxPrice, selectedCity, selectedDate },
       3,
     );
@@ -43,15 +83,30 @@ export default function Home() {
   const renderFilters = () => (
     <TrainFilters
       searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
+      onSearchChange={(val) => {
+        setAiResultTrains(null);
+        setSearchQuery(val);
+      }}
       wifiOnly={wifiOnly}
-      onWifiChange={setWifiOnly}
+      onWifiChange={(val) => {
+        setAiResultTrains(null);
+        setWifiOnly(val);
+      }}
       maxPrice={maxPrice}
-      onPriceChange={setMaxPrice}
+      onPriceChange={(val) => {
+        setAiResultTrains(null);
+        setMaxPrice(val);
+      }}
       selectedCity={selectedCity}
-      onCityChange={setSelectedCity}
+      onCityChange={(val) => {
+        setAiResultTrains(null);
+        setSelectedCity(val);
+      }}
       selectedDate={selectedDate}
-      onDateChange={setSelectedDate}
+      onDateChange={(val) => {
+        setAiResultTrains(null);
+        setSelectedDate(val);
+      }}
       cities={allCities}
     />
   );
@@ -59,6 +114,12 @@ export default function Home() {
   return (
     <div className="bg-light min-vh-100 pb-5">
       <Container className="pt-4 pt-md-5">
+        <SmartSearchBar
+          onApplySmartSearch={handleApplySmartSearch}
+          onClearSmartSearch={handleClearSmartSearch}
+          activeAiFilter={activeAiFilter}
+        />
+
         <div className="d-lg-none mb-4">
           <Button
             variant="primary"
