@@ -78,7 +78,7 @@ export default function TrainFilters({
             <span className="badge bg-primary rounded-pill">{maxPrice} UAH</span>
           </div>
           <Form.Range
-            min={50} max={500} step={10}
+            min={50} max={1000} step={10}
             value={maxPrice}
             onChange={(e) => onPriceChange(Number(e.target.value))}
             className="custom-range"

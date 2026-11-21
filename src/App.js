@@ -5,6 +5,7 @@ import { CartProvider } from "./components/context/CartContext";
 import ProtectedRoute from "./components/context/auth/ProtectedRoute";
 import AppNavbar from "./components/menu/AppNavbar";
 import Footer from "./components/menu/Footer";
+import AiChatWidget from "./components/ai/AiChatWidget";
 import Home from "./pages/Home";
 import Cart from "./pages/Cart";
 import UserProfile from "./pages/UserProfile";
@@ -40,6 +41,7 @@ function App() {
             </Routes>
           </main>
           <Footer />
+          <AiChatWidget />
         </div>
       </CartProvider>
     </AuthProvider>
